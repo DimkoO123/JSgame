@@ -10,6 +10,7 @@ export class Cell {
         boardElement.append(cell);
         this.#x = x;
         this.#y = y;
+        this.tile = null;
     }
 
     get x() {
@@ -46,9 +47,11 @@ export class Cell {
     }
 
     mergeTiles() {
-        if(this.tile == null || this.mergeTile == null) return;
-        this.tile.value = this.tile.value + this.mergeTile.value;
+        if (this.tile == null || this.mergeTile == null) return 0;
+        this.tile.value += this.mergeTile.value;
+        const mergedValue = this.tile.value;
         this.mergeTile.remove();
         this.mergeTile = null;
+        return mergedValue;
     }
 }

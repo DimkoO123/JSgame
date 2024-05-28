@@ -11,6 +11,21 @@ body {
     justify-content: center;
     height: 100vh;
 }
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+}
+
+.score-container {
+    color: azure;
+    margin-bottom: 4vmin;
+    font-size: 7vmin;
+    width: 100%;
+}
+
 .board {
     --cell-size: 20vmin;
     --cell-gap: 2vmin;
@@ -20,6 +35,52 @@ body {
     grid-template-rows: repeat(var(--board-size), var(--cell-size));
     gap: var(--cell-gap);
     border-radius: 1vmin;
+}
+
+.restart-button {
+  align-items: center;
+  background-clip: padding-box;
+  background-color: #fa6400;
+  border: 1px solid transparent;
+  border-radius: .25rem;
+  box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  justify-content: center;
+  line-height: 1.25;
+  margin: 0;
+  min-height: 3rem;
+  padding: 2vmin 4vmin;
+  position: relative;
+  text-decoration: none;
+  transition: all 250ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: baseline;
+  width: auto;
+  margin-top: 4vmin;
+}
+
+.restart-button:hover,
+.restart-button:focus {
+  background-color: #fb8332;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+}
+
+.restart:hover {
+  transform: translateY(-1px);
+}
+
+.restart:active {
+  background-color: #c85000;
+  box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+  transform: translateY(0);
 }
 
 .cell {

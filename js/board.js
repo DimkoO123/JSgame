@@ -1,4 +1,5 @@
 import { Cell } from "./cell.js";
+import { Tile } from "./tile.js";
 
 const BOARD_SIZE = 4;
 const CELL_COUNT = BOARD_SIZE * BOARD_SIZE;
@@ -9,6 +10,7 @@ export class Board {
         this.cells = [];
         this.boardElement = boardElement;
     }
+
     createBoardElements() {
         for (let i = 0; i < CELL_COUNT; i++) {
             this.cells.push(
@@ -40,5 +42,46 @@ export class Board {
     getRandomEmptyCell() {
         const randomIndex = Math.floor(Math.random() * this.emptyCells.length);
         return this.emptyCells[randomIndex];
+    }
+
+    moveTiles(cells) {
+        let moved = false;
+        cells.forEach(group => {
+            for (let i = 1; i < group.length; i++) {
+                const cell = group[i];
+                if (cell.tile == null) continue;
+                let lastValidCell;
+                for (let j = i - 1; j >= 0; j--) {
+                    const moveToCell = group[j];
+                    if (!moveToCell.canAccept(cell.tile)) break;
+                    lastValidCell = moveToCell;
+                }
+
+                if (lastValidCell != null) {
+                    if (lastValidCell.tile != null) {
+                        lastValidCell.mergeTile = cell.tile;
+                    } else {
+                        lastValidCell.tile = cell.tile;
+                    }
+                    cell.tile = null;
+                    moved = true;
+                }
+            }
+        });
+        return moved;
+    }
+
+    canMerge() {
+        for (let x = 0; x < BOARD_SIZE; x++) {
+            for (let y = 0; y < BOARD_SIZE; y++) {
+                const currentCell = this.cellsByRow[y][x];
+                const rightCell = this.cellsByRow[y][x + 1];
+                const bottomCell = this.cellsByColumn[x][y + 1];
+                if ((rightCell && rightCell.canAccept(currentCell.tile)) || (bottomCell && bottomCell.canAccept(currentCell.tile))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

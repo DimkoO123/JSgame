@@ -2,123 +2,155 @@ import { Board } from "./board.js";
 import { Tile } from "./tile.js";
 
 const gameBoard = document.querySelector("#game-board");
+const scoreContainer = document.querySelector(".score");
+const restartButton = document.querySelector(".restart-button");
+
+let totalScore = 0;
+let eventListenersAttached = false;
 
 const board = new Board(gameBoard);
 
 board.createBoardElements();
+startGame();
 
-board.getRandomEmptyCell().tile = new Tile(gameBoard);
-board.getRandomEmptyCell().tile = new Tile(gameBoard);
+restartButton.addEventListener("click", restartGame);
 
-eventHandler();
+function startGame() {
+    totalScore = 0;
+    updateScore(0);
+    board.cells.forEach(cell => cell.tile = null);
+    addRandomTile();
+    addRandomTile();
+    if (!eventListenersAttached) {
+        eventHandler();
+        eventListenersAttached = true;
+    }
+}
+
+function addRandomTile() {
+    const emptyCells = board.emptyCells;
+    if (emptyCells.length > 0) {
+        emptyCells[Math.floor(Math.random() * emptyCells.length)].tile = new Tile(gameBoard);
+    }
+}
 
 function eventHandler() {
-    window.addEventListener("keydown", moveHandler, { once: true });
+    window.addEventListener("keydown", moveHandler);
 
-    // Touch event listeners for mobile devices
     let touchStartX = 0;
     let touchStartY = 0;
 
     window.addEventListener("touchstart", (event) => {
         touchStartX = event.touches[0].clientX;
         touchStartY = event.touches[0].clientY;
-    }, { once: true });
+    });
 
     window.addEventListener("touchend", (event) => {
         const touchEndX = event.changedTouches[0].clientX;
         const touchEndY = event.changedTouches[0].clientY;
         handleTouchMove(touchStartX, touchStartY, touchEndX, touchEndY);
-    }, { once: true });
+    });
 }
 
 function moveHandler(event) {
+    let moved = false;
     switch (event.key) {
         case "ArrowUp":
-            moveUp();
+            moved = moveUp();
             break;
         case "ArrowRight":
-            moveRight();
+            moved = moveRight();
             break;
         case "ArrowDown":
-            moveDown();
+            moved = moveDown();
             break;
         case "ArrowLeft":
-            moveLeft();
+            moved = moveLeft();
             break;
         default:
             break;
     }
 
-    board.cells.forEach(cell => cell.mergeTiles());
-
-    board.getRandomEmptyCell().tile = new Tile(gameBoard);
-    board.getRandomEmptyCell().tile = new Tile(gameBoard);
-
-    eventHandler();
+    if (moved) {
+        addRandomTile();
+        addRandomTile();
+        updateGame();
+    }
 }
 
 function handleTouchMove(startX, startY, endX, endY) {
     const deltaX = endX - startX;
     const deltaY = endY - startY;
 
+    let moved = false;
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
         if (deltaX > 0) {
-            moveRight();
+            moved = moveRight();
         } else {
-            moveLeft();
+            moved = moveLeft();
         }
     } else {
         if (deltaY > 0) {
-            moveDown();
+            moved = moveDown();
         } else {
-            moveUp();
+            moved = moveUp();
         }
     }
 
-    board.cells.forEach(cell => cell.mergeTiles());
-
-    board.getRandomEmptyCell().tile = new Tile(gameBoard);
-    board.getRandomEmptyCell().tile = new Tile(gameBoard);
-
-    eventHandler();
+    if (moved) {
+        addRandomTile();
+        addRandomTile();
+        updateGame();
+    }
 }
 
 function moveUp() {
-    return moveTiles(board.cellsByColumn);
+    return board.moveTiles(board.cellsByColumn);
 }
 
 function moveDown() {
-    return moveTiles(board.cellsByColumn.map(column => [...column].reverse()));
+    return board.moveTiles(board.cellsByColumn.map(column => [...column].reverse()));
 }
 
 function moveLeft() {
-    return moveTiles(board.cellsByRow);
+    return board.moveTiles(board.cellsByRow);
 }
 
 function moveRight() {
-    return moveTiles(board.cellsByRow.map(row => [...row].reverse()));
+    return board.moveTiles(board.cellsByRow.map(row => [...row].reverse()));
 }
 
-function moveTiles(cells) {
-    cells.forEach(group => {
-        for (let i = 1; i < group.length; i++) {
-            const cell = group[i];
-            if (cell.tile == null) continue;
-            let lastValidCell;
-            for (let j = i - 1; j >= 0; j--) {
-                const moveToCell = group[j];
-                if (!moveToCell.canAccept(cell.tile)) break;
-                lastValidCell = moveToCell;
-            }
-
-            if (lastValidCell != null) {
-                if (lastValidCell.tile != null) {
-                    lastValidCell.mergeTile = cell.tile;
-                } else {
-                    lastValidCell.tile = cell.tile;
-                }
-                cell.tile = null;
-            }
+function updateGame() {
+    board.cells.forEach(cell => {
+        const mergedValue = cell.mergeTiles();
+        if (mergedValue) {
+            totalScore += mergedValue;
+            updateScore(totalScore);
         }
     });
+
+    const emptyCells = board.emptyCells;
+    if (emptyCells.length === 0 && !board.canMerge()) {
+        alert("Game over!");
+    }
+}
+
+function updateScore(newScore) {
+    scoreContainer.textContent = newScore;
+}
+
+function restartGame() {
+    board.cells.forEach(cell => {
+        if (cell.tile) {
+            cell.tile.remove();
+            cell.tile = null;
+        }
+        if (cell.mergeTile) {
+            cell.mergeTile.remove();
+            cell.mergeTile = null;
+        }
+    });
+    totalScore = 0;
+    updateScore(totalScore);
+    startGame();
 }
